@@ -17,3 +17,17 @@ Binaries can be simple binary blobs of data, which can be read to a specific RAM
 There is very limited support for CAR files, only type 1 (8kb), 2 (16kb) and 4 (32kb) are supported. No bank switching, etc. cartridges are supported.
 
 - CAR
+
+# Installation
+
+This loader is written and tested with Ghidra 10.3.3.
+
+You can either build the loader via Eclipse directly for Ghidra or you launch Ghidra, select the "File" menu => "Install Extensions" and select the "+" at the top right. In the file selector navigate to the 'dist' directly of this repository (or download the ZIP file from Github manually, currently it is named "ghidra_10.3.3_PUBLIC_20230908_Atari8BitGhidra.zip"). It should then show up in the dialog below.
+
+# Usage
+
+To use the loader just select "Import File" in Ghidra. You should see "Atari 8-Bit File Formats" when a file recognized in the import dialog. Select "Options…" to pick what you like to read.
+
+## Warning!
+
+Select the correct file! Only one should be selected with "BOOTFILE" being the default. If you like to read a DOS file, deselect "BOOTFILE". To read multiple sectors, just enter a start sector != 0 and a sector count. The load address is often part of the file format (BOOTFILE, DOS files), but can be forced by entering a "Load address" != 0. To enter a hex address, just type e.g. "0x700" into the dialog.
