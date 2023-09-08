@@ -49,9 +49,6 @@ import atari8bitghidra.AtariDiskImage.AtariDiskDirEntry;
 public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 	public static final String VERSION = "v1.0";
 
-//	public static final String OPTION_OVERLAY = "Overlay?";
-//	public static final String OPTION_CREATE_STACK = "Create stack?";
-
 	public AtariDiskImage image = null;
 	public Boolean isXEXfile = false;
 	public Boolean isCartridge = false;
