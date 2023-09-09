@@ -336,8 +336,8 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 	public List<Option> getDefaultOptions(ByteProvider provider, LoadSpec loadSpec, DomainObject domainObject,
 			boolean isLoadIntoProgram) {
 		List<Option> list = super.getDefaultOptions(provider, loadSpec, domainObject, isLoadIntoProgram);
+		list.add(new Option("Load address", 0, Integer.class, "LOADADDR"));
 		if (image != null) {
-			list.add(new Option("Load address", 0, Integer.class, "LOADADDR"));
 			list.add(new Option("BOOTFILE", true, Boolean.class, "BOOTFILE"));
 			for (AtariDiskDirEntry entry : image.entries) {
 				list.add(new Option("Files", "Load \"" + entry.filename + "." + entry.extension + "\"", false));
@@ -357,20 +357,27 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 		int sectorCount;
 		int loadAddr;
 		try {
-			startSector = (int) getValForNamedOption(options, "STARTSECTOR");
-			sectorCount = (int) getValForNamedOption(options, "SECTORCOUNT");
 			loadAddr = (int) getValForNamedOption(options, "LOADADDR");
 		} catch (IOException e) {
 			return "Error: cannot retreive option";
 		}
-		if (startSector < 0 || startSector > AtariDiskImage.MAX_SECTOR_COUNT)
-			return "Error: invalid sector number";
-		if (sectorCount <= 0 || (sectorCount + startSector - 1) > AtariDiskImage.MAX_SECTOR_COUNT)
-			return "Error: invalid sector count";
 		if (loadAddr >= 0x10000)
 			return "Error: invalid loading address";
-		if (loadAddr + sectorCount * image.SECTOR_SIZE >= 0x10000)
-			return "Error: too large to load into address space";
+
+		if (image != null) {
+			try {
+				startSector = (int) getValForNamedOption(options, "STARTSECTOR");
+				sectorCount = (int) getValForNamedOption(options, "SECTORCOUNT");
+			} catch (IOException e) {
+				return "Error: cannot retreive option";
+			}
+			if (startSector < 0 || startSector > AtariDiskImage.MAX_SECTOR_COUNT)
+				return "Error: invalid sector number";
+			if (sectorCount <= 0 || (sectorCount + startSector - 1) > AtariDiskImage.MAX_SECTOR_COUNT)
+				return "Error: invalid sector count";
+			if (loadAddr + sectorCount * image.SECTOR_SIZE >= 0x10000)
+				return "Error: too large to load into address space";
+		}
 		return super.validateOptions(provider, loadSpec, options, program);
 	}
 
