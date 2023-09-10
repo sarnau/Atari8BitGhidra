@@ -52,6 +52,7 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 	public AtariDiskImage image = null;
 	public Boolean isXEXfile = false;
 	public Boolean isCartridge = false;
+	public Boolean isBootfile = false;
 
 	// Gets the Loader's name, which is used both for display purposes, and to
 	// identify the Loader in the opinion files.
@@ -79,7 +80,9 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 				isXEXfile = true;
 			else if (name.endsWith(".car"))
 				isCartridge = true;
-			if (image != null || isXEXfile || isCartridge)
+			else if (name.endsWith(".atboot"))
+				isBootfile = true;
+			if (image != null || isXEXfile || isCartridge || isBootfile)
 				loadSpecs.add(
 						new LoadSpec(this, 0, new LanguageCompilerSpecPair("6502:LE:16:default", "default"), true));
 		} catch (Exception ex) {
@@ -99,16 +102,53 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 		bap.close();
 	}
 
+	private void loadAtariBootFile(BinaryReader br, int loadAddr, Program program, TaskMonitor monitor,
+			MessageLog log) throws Exception {
+		FlatProgramAPI api = new FlatProgramAPI(program);
+		byte[] bootFile = br.readByteArray(0, (int)br.length());
+//		byte DFLAGS = bootFile[0];
+		int DBSECT = bootFile[1] & 0xFF;
+		if (DBSECT == 0)
+			DBSECT = 256;
+		int BOOTAD = (bootFile[2] & 0xFF) + ((bootFile[3] & 0xFF) << 8);
+		int DOSINI = (bootFile[4] & 0xFF) + ((bootFile[5] & 0xFF) << 8);
+
+		ByteArrayProvider bap = new ByteArrayProvider(bootFile);
+		if (loadAddr != 0)
+			BOOTAD = loadAddr;
+		MemoryBlockUtils.createInitializedBlock(program, false, String.format("BOOTFILE_%04X", BOOTAD),
+				api.toAddr(BOOTAD), bap.getInputStream(0), bootFile.length, null, "BOOTFILE", true, true, true, log,
+				monitor);
+		bap.close();
+
+		// Define the BOOT Sector header
+		api.createByte(api.toAddr(BOOTAD));
+		api.setEOLComment(api.toAddr(BOOTAD), "DBFLAGS");
+		api.createByte(api.toAddr(BOOTAD + 1));
+		api.setEOLComment(api.toAddr(BOOTAD + 1), "DBSECT");
+		api.setEOLComment(api.toAddr(BOOTAD + 2), "BOOTAD");
+		api.createData(api.toAddr(BOOTAD + 2), PointerDataType.dataType);
+		api.setEOLComment(api.toAddr(BOOTAD + 4), "DOSINI");
+		api.createData(api.toAddr(BOOTAD + 4), PointerDataType.dataType);
+
+		api.addEntryPoint(api.toAddr(DOSINI));
+		api.createFunction(api.toAddr(DOSINI), "DOSINI");
+		api.disassemble(api.toAddr(DOSINI));
+		api.addEntryPoint(api.toAddr(BOOTAD + 6));
+		api.createFunction(api.toAddr(BOOTAD + 6), "BOOT_CONTINUE");
+		api.disassemble(api.toAddr(BOOTAD + 6));
+	}
+
 	private void loadDiskSectorFile(BinaryReader br, int startSector, Program program, TaskMonitor monitor,
 			MessageLog log) throws Exception {
 		FlatProgramAPI api = new FlatProgramAPI(program);
 		byte[] bootSector = image.ReadSectors(br, startSector, 1);
 //		byte DFLAGS = bootSector[0];
-		int DBSECT = bootSector[1];
+		int DBSECT = (bootSector[1] & 0xFF);
 		if (DBSECT == 0)
 			DBSECT = 256;
-		int BOOTAD = bootSector[2] + (bootSector[3] << 8);
-		int DOSINI = bootSector[4] + (bootSector[5] << 8);
+		int BOOTAD = (bootSector[2] & 0xFF) + ((bootSector[3] & 0xFF) << 8);
+		int DOSINI = (bootSector[4] & 0xFF) + ((bootSector[5] & 0xFF) << 8);
 		byte[] bootFile = image.ReadSectors(br, startSector, DBSECT);
 
 		ByteArrayProvider bap = new ByteArrayProvider(bootFile);
@@ -276,6 +316,8 @@ public class Atari8BitGhidraLoader extends AbstractProgramWrapperLoader {
 			int loadAddr = (int) getValForNamedOption(options, "LOADADDR");
 			if (isCartridge) {
 				loadCarFile(br, provider.getFile().getName(), program, monitor, log);
+			} else if (isBootfile) {
+				loadAtariBootFile(br, loadAddr, program, monitor, log);
 			} else if (isXEXfile) {
 				loadEXEFile(br, provider.getFile().getName(), loadAddr, program, monitor, log);
 			} else {

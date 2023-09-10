@@ -13,6 +13,9 @@ Binaries can be simple binary blobs of data, which can be read to a specific RAM
 - XEX
 - COM
 
+- ATBOOT
+If you change the file extension to ATBOOT, the file will be treated like a boot sector and loaded as such (Byte 0: flags, Byte 1:# of sectors, Byte 2/3:load address, etc).
+
 ## Cartridges
 There is very limited support for CAR files, only type 1 (8kb), 2 (16kb) and 4 (32kb) are supported. No bank switching, etc. cartridges are supported.
 
