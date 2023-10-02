@@ -18,12 +18,13 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
 			<name>Ghidra</name>
 			<type>2</type>
-			<location>/Applications/ghidra_10.3.3_PUBLIC</location>
+			<location>/Applications/ghidra_10.4_PUBLIC</location>
 		</link>
 	</linkedResources>
 </projectDescription>

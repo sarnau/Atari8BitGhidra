@@ -29,16 +29,18 @@ if True:
 		page = mem.createUninitializedBlock("PAGE3", toAddr(0x0300), 0x100, 0)
 	page.setWrite(True)
 	page.setExecute(True)
-	page = mem.getBlock(toAddr(0x0400))
-	if not page:
-		page = mem.createUninitializedBlock("PAGE4", toAddr(0x0400), 0x100, 0)
-	page.setWrite(True)
-	page.setExecute(True)
-	page = mem.getBlock(toAddr(0x0500))
-	if not page:
-		page = mem.createUninitializedBlock("PAGE5", toAddr(0x0500), 0x100, 0)
-	page.setWrite(True)
-	page.setExecute(True)
+	if False:
+		page = mem.getBlock(toAddr(0x0400))
+		if not page:
+			page = mem.createUninitializedBlock("PAGE4", toAddr(0x0400), 0x100, 0)
+		page.setWrite(True)
+		page.setExecute(True)
+	if False:
+		page = mem.getBlock(toAddr(0x0500))
+		if not page:
+			page = mem.createUninitializedBlock("PAGE5", toAddr(0x0500), 0x100, 0)
+		page.setWrite(True)
+		page.setExecute(True)
 	page = mem.getBlock(toAddr(0xC000))
 	if not page:
 		page = mem.createUninitializedBlock("UNMAPPED", toAddr(0xC000), 0x1000, 0)
